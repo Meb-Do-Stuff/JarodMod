@@ -1,12 +1,13 @@
-﻿using BepInEx;
+﻿using System.IO;
+using System.Reflection;
+using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using BlueEyes.Pause;
+using Cpp2IL.Core.Extensions;
 using HarmonyLib;
-using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.Injection;
 using UnityEngine;
-using UnityEngine.Assertions;
 
 namespace JarodMod;
 
@@ -22,9 +23,13 @@ public class Plugin : BasePlugin
         Log.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded UPDATED!");
         Harmony.CreateAndPatchAll(typeof(Plugin));
         ClassInjector.RegisterTypeInIl2Cpp<Test>();
-        var assetBundle = AssetBundle.LoadFromFile(Application.streamingAssetsPath + "/jarodbundle");
-    }
 
+        Debug.LogWarning("Here0!");
+        using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("JarodMod.jarodbundle");
+        var assetBundle = AssetBundle.LoadFromMemory(stream!.ReadBytes());
+
+        Log.LogInfo("AssetBundle loaded successfully.");
+    }
 
     [HarmonyPatch(typeof(PauseController), "Pause")]
     [HarmonyPostfix]
@@ -44,10 +49,10 @@ public class Test : MonoBehaviour
     {
         Plugin.Log.LogInfo("Test class is loaded!");
 
-        var npc = GameObject.Find("NPC_Jarod");
-        Assert.IsNotNull(npc, "Jarod not found!");
-
-
+        // var npc = GameObject.Find("NPC_Jarod");
+        // Assert.IsNotNull(npc, "Jarod not found!");
+        //
+        // var assetBundle = AssetBundle.LoadFromFile(Path.Combine(Application.streamingAssetsPath, "jarodbundle"));
         // var gameObjectType = Il2CppType.Of<GameObject>();
         // var prefab = assetBundle.LoadAsset("Ears", gameObjectType) as GameObject;
         // prefab!.transform.position = npc.transform.position;
